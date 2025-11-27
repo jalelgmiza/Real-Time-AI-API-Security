@@ -157,13 +157,7 @@ This single command will:
 
 ```
 
-### Access the Dashboard
-Open your browser and navigate to:
-```
-http://localhost:8000
-```
 
----
 
 ##  Dashboard Features
 
@@ -331,6 +325,7 @@ Weighted voting with adaptive thresholds:
 - Neural networks: 15% weight
 
 ---
+
 
 
 
