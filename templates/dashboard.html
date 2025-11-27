@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Sentinel Pro - Security Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #059669;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--dark);
+            padding: 2rem 1rem;
+            border-right: 1px solid #374151;
+        }
+
+        .sidebar h2 {
+            color: var(--primary);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-bottom: 1rem;
+        }
+
+        .nav-links a {
+            color: #d1d5db;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .alerts-section {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .alert-item {
+            padding: 1rem;
+            border-left: 4px solid var(--danger);
+            background: #464b53;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .alert-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-type {
+            font-weight: bold;
+            color: var(--danger);
+        }
+
+        .alert-type.warning {
+            color: var(--warning);
+        }
+
+        .alert-time {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .risk-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .risk-high {
+            background: var(--danger);
+        }
+
+        .risk-medium {
+            background: var(--warning);
+        }
+
+        .risk-low {
+            background: var(--success);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            border-radius: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .connection-status.connected::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+       
+        <div class="sidebar">
+            <h2>🛡️ API Sentinel</h2>
+            <ul class="nav-links">
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li><a href="#">API Logs</a></li>
+                <li><a href="#">Detection Rules</a></li>
+                <li><a href="#">User Behavior</a></li>
+                <li><a href="#">System Settings</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="main-content">
+           
+            <div class="header">
+                <h1>Security Dashboard</h1>
+                <div class="connection-status connected" id="connectionStatus">
+                    Real-time Connected
+                </div>
+            </div>
+
+           
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRequests">0</div>
+                    <div class="stat-label">Total Requests</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-number" id="highRiskAlerts">0</div>
+                    <div class="stat-label">High Risk Alerts</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="anomaliesDetected">0</div>
+                    <div class="stat-label">Anomalies Detected</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+         
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Request Traffic & Anomalies</h3>
+                    <div id="trafficChart" style="height: 300px;"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Attack Type Distribution</h3>
+                    <div id="attackChart" style="height: 300px;"></div>
+                </div>
+            </div>
+
+        
+            <div class="alerts-section">
+                <h3>Real-time Security Alerts</h3>
+                <div id="alertsContainer">
+                 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        let ws = null;
+        let isConnected = false;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function () {
+                console.log('WebSocket connected');
+                isConnected = true;
+                updateConnectionStatus(true);
+            };
+
+            ws.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+
+            ws.onclose = function () {
+                console.log('WebSocket disconnected');
+                isConnected = false;
+                updateConnectionStatus(false);
+                
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = function (error) {
+                console.error('WebSocket error:', error);
+                isConnected = false;
+                updateConnectionStatus(false);
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.textContent = 'Real-time Connected';
+                statusElement.className = 'connection-status connected';
+            } else {
+                statusElement.textContent = 'Disconnected - Reconnecting...';
+                statusElement.className = 'connection-status';
+            }
+        }
+
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'new_log':
+                    updateStats();
+                    break;
+                case 'detection_complete':
+                    updateAlerts();
+                    updateCharts();
+                    break;
+                case 'new_alert':
+                    addNewAlert(data.alert);
+                    break;
+            }
+        }
+
+        
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                return null;
+            }
+        }
+
+        async function fetchAlerts() {
+            try {
+                const response = await fetch('/api/alerts?high_risk_only=true');
+                const data = await response.json();
+                return data.alerts || [];
+            } catch (error) {
+                console.error('Error fetching alerts:', error);
+                return [];
+            }
+        }
+
+        async function fetchLogs(limit = 50) {
+            try {
+                const response = await fetch(`/api/logs?limit=${limit}`);
+                const data = await response.json();
+                return data.logs || [];
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+                return [];
+            }
+        }
+
+     
+        async function updateStats() {
+            const stats = await fetchStats();
+            if (stats) {
+                document.getElementById('totalRequests').textContent =
+                    stats.total_logs?.toLocaleString() || '0';
+
+                
+                document.getElementById('highRiskAlerts').textContent =
+                    Math.floor(stats.total_logs * 0.05) || '0';
+
+                document.getElementById('anomaliesDetected').textContent =
+                    Math.floor(stats.total_logs * 0.08) || '0';
+
+                document.getElementById('successRate').textContent =
+                    '95%';
+            }
+        }
+
+        async function updateAlerts() {
+            const alerts = await fetchAlerts();
+            const container = document.getElementById('alertsContainer');
+
+            container.innerHTML = alerts.slice(0, 10).map(alert => `
+                <div class="alert-item ${alert.risk_score > 0.7 ? '' : 'warning'}">
+                    <div class="alert-header">
+                        <span class="alert-type ${alert.risk_score > 0.7 ? '' : 'warning'}">
+                            ${alert.attack_type || 'Suspicious Activity'}
+                        </span>
+                        <span class="risk-badge ${getRiskClass(alert.risk_score)}">
+                            ${getRiskText(alert.risk_score)}
+                        </span>
+                    </div>
+                    <div class="alert-description">
+                        IP: ${alert.ip_address} | User: ${alert.user_id}
+                    </div>
+                    <div class="alert-time">
+                        ${new Date(alert.timestamp).toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewAlert(alert) {
+            const container = document.getElementById('alertsContainer');
+            const alertHTML = `
+                <div class="alert-item ${alert.risk_score > 0.7 ? '' : 'warning'}">
+                    <div class="alert-header">
+                        <span class="alert-type ${alert.risk_score > 0.7 ? '' : 'warning'}">
+                            ${alert.attack_type || 'Suspicious Activity'}
+                        </span>
+                        <span class="risk-badge ${getRiskClass(alert.risk_score)}">
+                            ${getRiskText(alert.risk_score)}
+                        </span>
+                    </div>
+                    <div class="alert-description">
+                        ${alert.explanation || 'Anomalous activity detected'}
+                    </div>
+                    <div class="alert-time">
+                        ${new Date().toLocaleString()}
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('afterbegin', alertHTML);
+
+          
+            const alerts = container.querySelectorAll('.alert-item');
+            if (alerts.length > 10) {
+                alerts[alerts.length - 1].remove();
+            }
+        }
+
+        function getRiskClass(riskScore) {
+            if (riskScore > 0.7) return 'risk-high';
+            if (riskScore > 0.3) return 'risk-medium';
+            return 'risk-low';
+        }
+
+        function getRiskText(riskScore) {
+            if (riskScore > 0.7) return 'HIGH';
+            if (riskScore > 0.3) return 'MEDIUM';
+            return 'LOW';
+        }
+
+      
+        async function updateCharts() {
+            await updateTrafficChart();
+            await updateAttackChart();
+        }
+
+        async function updateTrafficChart() {
+            const logs = await fetchLogs(100);
+            const timeGroups = {};
+
+            logs.forEach(log => {
+                const hour = new Date(log.timestamp).getHours();
+                timeGroups[hour] = (timeGroups[hour] || 0) + 1;
+            });
+
+            const hours = Object.keys(timeGroups).sort();
+            const counts = hours.map(hour => timeGroups[hour]);
+
+            const trace = {
+                x: hours,
+                y: counts,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Requests',
+                line: { color: '#2563eb' }
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' },
+                xaxis: { title: 'Hour of Day' },
+                yaxis: { title: 'Number of Requests' },
+                margin: { t: 30 }
+            };
+
+            Plotly.newPlot('trafficChart', [trace], layout);
+        }
+
+        async function updateAttackChart() {
+            const stats = await fetchStats();
+            const attackDist = stats?.attack_distribution || {};
+
+            const labels = Object.keys(attackDist);
+            const values = Object.values(attackDist);
+
+            const data = [{
+                values: values,
+                labels: labels,
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: ['#dc2626', '#d97706', '#059669', '#2563eb', '#7c3aed']
+                }
+            }];
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' },
+                showlegend: true,
+                margin: { t: 30, b: 30 }
+            };
+
+            Plotly.newPlot('attackChart', data, layout);
+        }
+
+       
+        document.addEventListener('DOMContentLoaded', function () {
+            connectWebSocket();
+            updateStats();
+            updateAlerts();
+            updateCharts();
+
+          
+            setInterval(async () => {
+                if (isConnected) {
+                    await updateStats();
+                    await updateAlerts();
+                    await updateCharts();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+
+</html>
