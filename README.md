@@ -2,7 +2,7 @@
 
 # ** Real-Time API Security Monitoring & Anomaly Detection System**
 
-API Sentinel Pro is an enterprise-grade, AI-powered API security platform that leverages cutting-edge machine learning and deep learning techniques to detect and prevent sophisticated API attacks in real-time. Built with an ensemble of 8+ ML models, neural networks, and behavioral analysis, it provides comprehensive protection against modern API threats.
+ AI-powered API security platform that leverages cutting-edge machine learning and deep learning techniques to detect and prevent sophisticated API attacks in real-time. Built with an ensemble of 8+ ML models, neural networks, and behavioral analysis, it provides comprehensive protection against modern API threats.
 
 ---
 
@@ -331,5 +331,6 @@ Weighted voting with adaptive thresholds:
 - Neural networks: 15% weight
 
 ---
+
 
 
