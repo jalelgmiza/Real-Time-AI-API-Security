@@ -155,7 +155,6 @@ This single command will:
 4.  Launch the dashboard in your browser
 
 
-```
 
 #Features
 
@@ -325,6 +324,7 @@ Weighted voting with adaptive thresholds:
 - Neural networks: 15% weight
 
 ---
+
 
 
 
