@@ -156,7 +156,7 @@ This single command will:
 
 
 
-#Features
+
 
 ##  Dashboard Features
 
@@ -324,6 +324,7 @@ Weighted voting with adaptive thresholds:
 - Neural networks: 15% weight
 
 ---
+
 
 
 
